@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+    <title>Phaser - Making your first game, part 9</title>
+	<script type="text/javascript" src="js/phaser.min.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+var game = new Phaser.Game(800, 750, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+
+function preload() {
+
+    game.load.image('fondo', 'assets/images/background_01.png');
+    game.load.image('plataforma_15', 'assets/images/estructura_15.png');
+    game.load.image('plataforma_3', 'assets/images/estructura_03.png');
+    game.load.image('escalera', 'assets/images/escalera1.png');
+		game.load.image('oil', 'assets/images/oil.png');
+		game.load.image('barriles', 'assets/images/barriles.png');
+		game.load.image('top', 'assets/images/top.png');
+		game.load.image('lanzarb', 'assets/images/lanzarbarril.png');
+		game.load.image('blank', 'assets/images/blank.png');
+		game.load.image('blank1', 'assets/images/blank1.png');
+
+
+
+
+
+    game.load.image('sky', 'assets/sky.png');
+    game.load.image('ground', 'assets/platform.png');
+
+    // game.load.spritesheet('mario', 'assets/images/mariotodo.png', 16,  16 );
+		game.load.spritesheet('mario', 'assets/images/mariotodo1.png', 16,  16 );
+
+		// game.load.spritesheet('barriless', 'assets/images/mariotodo.png', 16,  16 );
+		game.load.spritesheet('donkey', 'assets/images/spriteDK.png', 42, 32);
+		//barriles que giran
+		game.load.spritesheet('barr', 'assets/images/barrilR.png', 27, 32);
+		crearMuros = true;
+
+
+}
+
+var player;
+var platforms;
+var escaleras;
+var cursors;
+var ledge;
+var stars;
+var score = 0;
+var scoreText;
+var barriles;
+var donkey;
+var time;
+var cam;
+var lanzarb;
+//barriles que giran
+var barrilesGiran;
+//Variable para el barril
+var barr;
+//variable para las paredes donde rebota el barril
+var paredes;
+//variable para saber el lado al que giran
+var girar;
+//VARIBLE QUE ME PERMITE GENERAR LOS barriles
+var emitter;
+
+function create() {
+
+    //  We're going to be using physics, so enable the Arcade Physics system
+    game.physics.startSystem(Phaser.Physics.ARCADE);
+
+    platforms = game.add.group();
+    platforms.enableBody = true;
+
+    ///////AQUI EMPIEZAN LAS ESCALERAS
+    var ground = platforms.create(30, game.world.height - 64, 'plataforma_15');
+    ground.scale.setTo(3, 3);
+    ground.body.immovable = true;
+
+    var num = 390;
+    var num2 = 64;
+    var ledge = platforms.create(num,  game.world.height - (num2 += 3), 'plataforma_3');
+    ledge.scale.setTo(3, 3);
+    ledge.body.immovable = true;
+
+    for (var i = 0; i< 5; i++){
+        ledge = platforms.create(num += 70,  game.world.height - (num2 += 3), 'plataforma_3');
+        ledge.scale.setTo(3, 3);
+        ledge.body.immovable = true;
+    }
+
+    num = 630;
+    num2 = 164;
+    ledge = platforms.create(num,  game.world.height - num2, 'plataforma_3');
+    ledge.scale.setTo(3, 3);
+    ledge.body.immovable = true;
+
+    for (var i = 0; i< 9; i++){
+        ledge = platforms.create(num -= 70,  game.world.height - (num2 += 3), 'plataforma_3');
+        ledge.scale.setTo(3, 3);
+        ledge.body.immovable = true;
+    }
+
+    num2 += 90;
+
+
+    for (var i = 0; i< 10; i++){
+        ledge = platforms.create(num += 70,  game.world.height - (num2 += 3), 'plataforma_3');
+        ledge.scale.setTo(3, 3);
+        ledge.body.immovable = true;
+    }
+
+    num2 += 80;
+
+    for (var i = 0; i< 10; i++){
+        ledge = platforms.create(num -= 70,  game.world.height - (num2 += 3), 'plataforma_3');
+        ledge.scale.setTo(3, 3);
+        ledge.body.immovable = true;
+    }
+
+    num2 += 80;
+    for (var i = 0; i< 10; i++){
+        ledge = platforms.create(num += 70,  game.world.height - (num2 += 3), 'plataforma_3');
+        ledge.scale.setTo(3, 3);
+        ledge.body.immovable = true;
+    }
+
+		var ground = platforms.create(30, game.world.height - 619, 'plataforma_15');
+		ground.scale.setTo(3, 3);
+		ground.body.immovable = true;
+
+		num = 670;
+		num2 = 600;
+		for (var i = 0; i< 4; i++){
+        ledge = platforms.create( (num -= 70 ) ,  game.world.height - (num2 += 3), 'plataforma_3');
+        ledge.scale.setTo(3, 3);
+        ledge.body.immovable = true;
+    }
+
+
+		//PISOS DE ARRIBA
+		var ground = platforms.create(240, game.world.height - 700, 'plataforma_3');
+		ground.scale.setTo(3, 3);
+		ground.body.immovable = true;
+
+		var ground = platforms.create(310, game.world.height - 705, 'plataforma_3');
+		ground.scale.setTo(3, 3);
+		ground.body.immovable = true;
+
+		var ground = platforms.create(380, game.world.height - 705, 'plataforma_3');
+		ground.scale.setTo(3, 3);
+		ground.body.immovable = true;
+
+
+    //empiezan las escaleras
+		escaleras = game.add.group();
+		escaleras.enableBody = true;
+
+		//CREAMOS EL GRUPO DE LOS BARRILES QUE GIRAN
+		barrilesGiran = game.add.group();
+		barrilesGiran.enableBody = true;
+
+		//PARED PARA QUE REOBTE EL BARRIL
+		//CREAMOS LOS GRUPOS PARA QUE FUNCIONEN LAS PAREDES
+		 paredes1 = game.add.group();
+		 paredes1.enableBody = true;
+
+		 paredes2 = game.add.group();
+		 paredes2.enableBody = true;
+
+		 paredes3 = game.add.group();
+		 paredes3.enableBody = true;
+
+		 paredes4 = game.add.group();
+		 paredes4.enableBody = true;
+
+		 paredes5 = game.add.group();
+		 paredes5.enableBody = true;
+
+		 paredesfinal = game.add.group();
+		 paredesfinal.enableBody = true;
+
+		 ///primera pared
+		var pared1 = paredes1.create(790, game.world.height - 580, 'blank1');
+		pared1.scale.setTo(4, 4);
+		pared1.body.immovable = true;
+		//segunda pared
+		var pared2 = paredes2.create(-28, game.world.height - 450, 'blank1');
+		pared2.scale.setTo(4, 4);
+		pared2.body.immovable = true;
+		//TERCER pared
+		var pared3 = paredes3.create(790, game.world.height - 350, 'blank1');
+		pared3.scale.setTo(4, 4);
+	  pared3.body.immovable = true;
+
+		var pared4 = paredes4.create(-28, game.world.height - 230, 'blank1');
+		pared4.scale.setTo(4, 4);
+	  pared4.body.immovable = true;
+
+		var pared5 = paredes5.create(790, game.world.height - 130, 'blank1');
+		pared5.scale.setTo(4, 4);
+	  pared5.body.immovable = true;
+
+		var paredfinal = paredesfinal.create(-28, game.world.height - 100, 'blank1');
+		paredfinal.scale.setTo(4, 4);
+	  paredfinal.body.immovable = true;
+
+
+		var escalera = escaleras.create(638, game.world.height - 139, 'escalera');
+		escalera.scale.setTo(4, 4);
+
+		escalera = escaleras.create(300, game.world.height - 270, 'escalera');
+    escalera.scale.setTo(4, 6);
+
+    escalera = escaleras.create(80, game.world.height - 260, 'escalera');
+    escalera.scale.setTo(4, 5);
+
+    escalera = escaleras.create(360, game.world.height - 384, 'escalera');
+    escalera.scale.setTo(4, 6);
+
+		escalera = escaleras.create(650, game.world.height - 370, 'escalera');
+    escalera.scale.setTo(4, 4);
+
+    escalera = escaleras.create(90, game.world.height - 480, 'escalera');
+    escalera.scale.setTo(4, 4);
+
+		escalera = escaleras.create(230, game.world.height - 485, 'escalera');
+    escalera.scale.setTo(4, 5);
+
+		escalera = escaleras.create(563, game.world.height - 582, 'escalera');
+    escalera.scale.setTo(4, 4);
+		///TERMINAN LAS ESCALERAS
+
+
+
+		// OIL
+		var oil = game.add.sprite(80, game.world.height - 156, 'oil');
+		oil.scale.setTo(3, 3);
+
+		//BARRILES ESTATICOS
+	  barriles = game.add.sprite(10, game.world.height - 715, 'barriles');
+		barriles.scale.setTo(3, 3);
+
+		//top
+		var top = game.add.sprite(520, game.world.height - 735, 'top');
+		top.scale.setTo(2, 2);
+
+		//DONKEY
+		donkey = game.add.sprite(90, game.world.height - 715, 'donkey');
+    donkey.scale.setTo(3, 3);
+
+		//BARRI QUE GIRA
+		barr = game.add.sprite(215, game.world.height - 682, 'barr');
+    barr.scale.setTo(1.2, 1.2);
+
+		//MOVIMIENTO DE DONKEY CUANDO LANZA BARRIL
+		// lanzarb = game.add.sprite(90, game.world.height - 716, 'lanzarb');
+		// lanzarb.scale.setTo(3, 3);
+
+		//MARIO BROS
+    player = game.add.sprite(172, game.world.height - 150, 'mario');
+    player.scale.setTo(2, 3);
+
+
+    //  We need to enable physics on the player
+    game.physics.arcade.enable(player);
+		game.physics.arcade.enable(barr);
+    //  Player physics properties. Give the little guy a slight bounce.
+    player.body.bounce.y = 0.2;
+    player.body.gravity.y = 800;
+    player.body.collideWorldBounds = true;
+
+		//GRACEDAD PARA LOS BARRILES
+		barr.body.bounce.y = 0.2;
+    barr.body.gravity.y = 800;
+    barr.body.collideWorldBounds = true;
+
+
+    //  Our two animations, walking left and right.
+    player.animations.add('left', [0, 1, 2], 10, true);
+    player.animations.add('right', [3, 4, 5 ], 10, true);
+		player.animations.add('arriba4', [9], 10, true);
+		// player.animations.add('muere', [10], 10, true);
+		player.frame = 3;
+
+		//MOVIMIENTO DE DONKEY GOLPEANDOSE
+		donkey.animations.add('brinca', [2, 3], 4, true);
+		//MOVIMIENTO DEL BARRIL GIRANDO
+		barr.animations.add('girar', [0, 1 , 2, 3], 6, true);
+		//MOVIMIENTO DEL B ARRIL GIRANDO A LA IZQUIERDA
+		barr.animations.add('girarL', [3, 2 , 1, 0], 6, true);
+		// game.time.events.add(Phaser.Timer.SECOND * 2, brincar, this);
+
+		//CICLO QUE SIRVE PARA QUE DONKEY SE GOLPEE
+		game.time.events.add(Phaser.Timer.SECOND * 2, rodar, this);
+		//loop para que se mueva donkey
+		game.time.events.loop(Phaser.Timer.SECOND, brincar, this);
+		//LOOP PARA CREAR LOS BARRILES
+		game.time.events.loop(Phaser.Timer.SECOND, crearbarril, this);
+
+    cursors = game.input.keyboard.createCursorKeys();
+
+}
+
+function update() {
+
+    //  Collide the player and the stars with the platforms
+    game.physics.arcade.collide(player, platforms);
+		//para wue colisione con los barriles
+    game.physics.arcade.collide(barr, platforms);
+
+		game.physics.arcade.overlap(player, barr, marioMuere, null, this);
+		//colision entre las paredes y el barril
+		// game.physics.arcade.collide(paredes, barr);
+
+    //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
+    game.physics.arcade.overlap(player, escaleras, collectStar, null, this);
+		//cuando choca con una la primer pared
+		game.physics.arcade.overlap(barr, paredes1, deslizar, null, this);
+		//cuando choca con una la segunda pared
+		game.physics.arcade.overlap(barr, paredes2, deslizar1, null, this);
+		//cuando choca con una la tercera pared
+		game.physics.arcade.overlap(barr, paredes3, deslizar2, null, this);
+		//cuando choca con una la caurta pared
+		game.physics.arcade.overlap(barr, paredes4, deslizar3, null, this);
+		//cuando choca con una la quinta pared
+		game.physics.arcade.overlap(barr, paredes5, deslizar4, null, this);
+		//cuando choque con la pared paredfinal
+		game.physics.arcade.overlap(barr, paredesfinal, borrarBarril, null, this);
+
+
+    //  Reset the players velocity (movement)
+    player.body.velocity.x = 0;
+
+
+		var lado;
+    if (cursors.left.isDown)
+    {
+        //  Move to the left
+        player.body.velocity.x = -150;
+        player.animations.play('left');
+				lado = 2;
+    }
+    else if (cursors.right.isDown)
+    {
+        //  Move to the right
+        player.body.velocity.x = 150;
+        player.animations.play('right');
+    }
+    else
+    {
+        //  Stand still
+        player.animations.stop();
+    }
+    //  Allow the player to jump if they are touching the ground.
+    if (cursors.up.isDown && player.body.touching.down)
+    {
+        player.body.velocity.y = -400;
+    }
+}
+
+function collectStar (player, escaleras) {
+
+		if(cursors.up.isDown){
+			player.body.velocity.y = -90;
+			if(true)
+			{
+				player.animations.play('arriba4');
+			}
+		}
+}
+function rodar(){
+	 barr.animations.play('girar');
+	 barr.body.velocity.x += 150;
+	 girar = 1;
+}
+
+function deslizar(){
+		barr.animations.play('girarL');
+		barr.body.velocity.x -= 150;
+		girar = 2;
+	}
+function deslizar1(){
+		barr.animations.play('girar');
+		barr.body.velocity.x += 150;
+		girar = 2;
+}
+function deslizar2(){
+		barr.animations.play('girarL');
+		barr.body.velocity.x -= 150;
+		girar = 2;
+}
+function deslizar3(){
+		barr.animations.play('girar');
+		barr.body.velocity.x += 150;
+		girar = 2;
+	}
+	function deslizar4(){
+		barr.animations.play('girarL');
+		barr.body.velocity.x -= 150;
+		girar = 2;
+		}
+
+	function borrarBarril(){
+		barr.kill();
+	}
+function brincar(){
+	donkey.animations.play('brinca');
+}
+
+function marioMuere(){
+	barr.kill();
+	// player.animations.play('muere');
+	player.frame = 7;
+}
+
+function crearbarril(){
+	game.time.events.add(Phaser.Timer.SECOND * 2, apareceBarril, this);
+}
+
+function apareceBarril(){
+	
+}
+
+
+
+
+
+
+
+</script>
+
+</body>
+</html>
